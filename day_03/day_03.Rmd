@@ -1,0 +1,271 @@
+---
+title: "Day_03_scientific_visualization_training"
+author: "By Muhammad Yasir Qurashi"
+date: "2026-03-03"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# **Two-way ANOVA in R**
+
+## Loading libraries
+
+Install these packages before activation if you they are not pre-installed in your environment
+
+```{r}
+library(ggplot2)
+library(multcompView)
+library(ggpubr)
+library(tidyverse)
+library(ggrain)
+library(ggsci)
+library(RColorBrewer)
+```
+
+## Creating/loading dataset
+
+```{r}
+TG <- ToothGrowth
+TG$dose <- as.factor(TG$dose)
+summary(TG)
+```
+
+# **Distribution of Data**
+
+## Raincloud plot
+
+```{r, fig.width=7, fig.height=4}
+p1 <- ggplot(data = TG, mapping = aes(x = dose, y = len, fill = dose)) +
+  geom_rain(color = "blue")+
+  labs(x = "Dose", y = "Tooth Length (mm)", title = "Rain Cloud Plot", subtitle = "Distribution of tooth length by dose", caption = "Made by Muhammad Yasir Qurashi")+
+  facet_wrap(~supp)+
+  theme(
+    axis.title = element_text(size = 12, color = "black", face = "bold"),
+    axis.text = element_text(size = 10, color = "black", face = "bold"), 
+    axis.line = element_line(linewidth = 1, color = "black"),
+    plot.title = element_text(size = 16, color = "blue", face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 12,face = "bold"),
+    legend.background = element_rect(color = "black", fill = "grey"),
+    legend.position = "right",
+    legend.text = element_text(size = 10, face = "bold"),
+    strip.background = element_rect(color = "black", fill = "grey", width = 3),
+    strip.text = element_text(family = "bold"),
+    panel.border = element_rect(linewidth = 1),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_blank()
+  )+
+  scale_fill_bmj();p1
+```
+
+## Density Plot
+
+```{r fig.height=4, fig.width=7}
+p2 <- ggplot(TG, aes(x = len, fill = dose)) +
+  geom_density(alpha = 0.6) +
+  labs(
+    title = "Density Plot",
+    x = "Tooth Length",
+    y = "Density", subtitle = "Distribution of tooth length by dose", caption = "Made by Muhammad Yasir Qurashi")+
+  facet_wrap(~supp)+
+  theme(
+    axis.title = element_text(size = 12, color = "black", face = "bold"),
+    axis.text = element_text(size = 10, color = "black", face = "bold"), 
+    axis.line = element_line(linewidth = 1, color = "black"),
+    plot.title = element_text(size = 16, color = "blue", face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 12,face = "bold"),
+    legend.background = element_rect(color = "black", fill = "grey"),
+    legend.position = "right",
+    legend.text = element_text(size = 10, face = "bold"),
+    strip.background = element_rect(color = "black", fill = "grey", width = 3),
+    strip.text = element_text(family = "bold"),
+    panel.border = element_rect(linewidth = 1),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_blank()
+  )+
+  scale_fill_brewer(palette = "Set1", direction = 1);p2
+```
+
+## Hypothesis testing steps for one-way ANOVA
+
+**1. Make your hypothesis**
+
+null hypothesis --\> there is no significant interactive effect of dose & supp on tooth length
+
+alternative --\>there is significant interactive effect of dose & supp on tooth length
+
+**2. Define your significance level**
+
+alpha = 0.05, C.I = 0.95
+
+**3. Selection of test**
+
+*Two way ANOVA*
+
+**4. Calculation**
+
+```{r}
+# Normality Check ( first condition of ANOVA)
+
+TG %>% 
+  group_by(dose, supp) %>% 
+  summarise(
+  shapiro_p = shapiro.test(len)$p.value
+  )
+
+ # Data is normal
+```
+
+```{r}
+# Homogenity ( Second Condition for ANOVA)
+library(car)
+leveneTest(len ~ dose*supp, data = TG, alternative = "two.sided")
+ # Data is Homogenous too
+```
+
+```{r}
+# ANOVA calculation
+results_anova <- aov(len ~ dose*supp, data = TG)
+summary(results_anova)
+```
+
+**5. Conclusion**
+
+Two way ANOVA has been done with statistical significant results \* ( n = 60, p_value \< 0.05 )
+
+# **Graphical Presentation**
+
+## Bargraph without lettering
+
+```{r, fig.width=8, fig.height=4}
+p3 <- ggplot(data = TG, mapping = aes(x = dose, y = len, fill = dose))+
+  geom_bar(stat = "summary", fun = "mean", width = 0.3, linewidth = 0.5)+
+  geom_errorbar(stat = "summary", fun.data = mean_se, width = 0.05, linewidth = 0.7)+
+  labs(x = "Dose", y = "Mean Tooth Length (mm)", title = "Bar Plot", subtitle = "Two-way ANOVA without lettering", caption = "made by Muhammad Yasir Qurashi")+
+  stat_compare_means(method = "anova", label.y = 26)+
+  facet_wrap(~supp)+
+    theme(
+    axis.title = element_text(size = 12, color = "black", face = "bold"),
+    axis.text = element_text(size = 10, color = "black", face = "bold"), 
+    axis.line = element_line(linewidth = 1, color = "black"),
+    plot.title = element_text(size = 16, color = "blue", face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 12,face = "bold"),
+    legend.background = element_rect(color = "black", fill = "grey"),
+    legend.position = "right",
+    legend.text = element_text(size = 10, face = "bold"),
+    strip.background = element_rect(color = "black", fill = "grey", width = 3),
+    strip.text = element_text(family = "bold"),
+    panel.border = element_rect(linewidth = 1),
+     panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_blank()
+  ) +
+  scale_fill_brewer(palette = "Set2", direction = 1);p3
+```
+
+
+## Barplot with lettering
+
+TO make barplot with significant letters there are four steps given below:
+
+**1. Step 1**
+
+Find group wise mean
+
+```{r}
+dose_mean <- TG %>% 
+  group_by(dose, supp) %>% 
+  summarise(
+    mean_len = mean(len),
+    sd = sd(len)
+  );dose_mean
+```
+
+**1. Step 2**
+
+calculation of anova
+
+```{r}
+anova <- aov(len ~ dose*supp, data = TG)
+summary(anova)
+```
+
+**1. Step 3**
+
+Post_hoc test
+
+```{r}
+tukey <- TukeyHSD(anova)
+print(tukey)
+```
+
+
+**1. Step 4**
+
+Giving Significant Letters
+
+```{r}
+SL <-  multcompLetters4(anova,tukey)
+print(SL)
+SL <- data.frame(SL$`dose:supp`$Letters)
+SL
+```
+
+
+**1. Step 5**
+
+Combine Significant letters with Mean Table
+
+```{r}
+dose_mean <- cbind(dose_mean, SL = SL$SL..dose.supp..Letters)
+dose_mean
+```
+
+## Plot
+
+```{r, fig.width=10, fig.height=4}
+p4 <- ggplot(data = TG, mapping = aes(x = dose, y = len, fill = dose))+
+  geom_bar(stat = "summary", fun = "mean", width = 0.5, linewidth = 0.5)+
+  geom_errorbar(stat = "summary", fun.data = mean_se, width = 0.05, linewidth = 0.7)+
+  geom_text(data = dose_mean, aes(x = dose, y = mean_len, label = SL), size = 5, hjust = 0, vjust = -1)+
+  facet_wrap(~supp)+
+  labs(x = "Dose", y = "Tooth Length Mean (mm)", title = "Bar Plot", subtitle = "Two-way ANOVA with lettering", caption = "By Muhammad Yasir Qurashi" )+
+    theme(
+    axis.title = element_text(size = 12, color = "black", face = "bold"),
+    axis.text = element_text(size = 10, color = "black", face = "bold"), 
+    axis.line = element_line(linewidth = 1, color = "black"),
+    plot.title = element_text(size = 16, color = "blue", face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 12,face = "bold"),
+    legend.background = element_rect(color = "black", fill = "grey"),
+    legend.position = "right",
+    legend.text = element_text(size = 10, face = "bold"),
+    strip.background = element_rect(color = "black", fill = "grey", width = 3),
+    strip.text = element_text(family = "bold"),
+    panel.border = element_rect(linewidth = 1),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_blank()
+  ) +
+  scale_fill_brewer(palette = "Dark2", direction = 1)+
+  ylim(0,30);p4
+```
+
+## Combine Plot
+
+```{r, fig.height = 8, fig.width = 14}
+library(patchwork)
+
+finalplot <- (p1 | p2 ) / (p3 | p4) +
+  plot_annotation(tag_levels = "A");finalplot
+```
+
+
+Best Regards,
+
+*Muhammad Yasir Qurashi*
+
+Research Data Analysis Tools Mentor
