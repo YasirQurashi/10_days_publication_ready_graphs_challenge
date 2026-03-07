@@ -1,0 +1,173 @@
+---
+title: "Day_04_scientific_visualization_training"
+author: "By Muhammad Yasir Qurashi"
+date: "2026-03-06"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# **Correlation & Multivariate Relationship Visualization**
+
+## Loading libraries
+
+```{r}
+library(ggplot2)
+library(multcompView)
+library(ggpubr)
+library(tidyverse)
+library(ggrain)
+library(ggsci)
+library(RColorBrewer)
+```
+
+## Loading dataset
+
+```{r}
+mt_data <- mtcars
+summary(mt_data)
+class(mt_data)
+```
+
+## Variables Interpretation
+
+| Variable | Meaning                            |
+|----------|------------------------------------|
+| mpg      | Miles per gallon (fuel efficiency) |
+| wt       | Car weight (1000 lbs)              |
+| hp       | Gross horsepower                   |
+| disp     | Engine displacement                |
+| cyl      | Number of cylinders                |
+
+## Scientific Research Questions to be Addressed
+
+Is vehicle weight negatively correlated with fuel efficiency (mile per galloon) ?
+
+Does horsepower predict fuel consumption ?
+
+Are engine size, horsepower, and weight inter-correlated ?
+
+## Scatterplot
+
+```{r}
+p1 <- ggplot(mt_data, mapping = aes(x = wt, y = mpg)) +
+  geom_point(size = 2, color = "blue", alpha = 1) +
+  labs(x = "Vehicle weight", y = "Fuel efficiency (mpg)", title = "Scatter Plot", subtitle = "Vehicle Weight Vs mpg", caption = "Made by Muhammad Yasir Qurashi") +
+  theme(
+    axis.title = element_text(size = 12, color = "black", face = "bold"),
+    axis.text = element_text(size = 10, color = "black", face = "bold"), 
+    axis.line = element_line(linewidth = 1, color = "black"),
+    plot.title = element_text(size = 16, color = "blue", face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 12,face = "bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_blank()
+  );p1
+```
+
+## Correlation Plot
+
+```{r}
+p2 <- ggplot(mt_data, mapping = aes(x = wt, y = mpg)) +
+  geom_point(size = 2, color = "blue", alpha = 0.8) +
+  geom_smooth(method = "lm", se = TRUE, color = "black")+
+  stat_cor(method = "pearson", label.x = 3, label.y = 30)+
+  stat_regline_equation(label.x = 3, label.y = 28)+
+  labs(x = "Vehicle weight", y = "Fuel efficiency (mpg)", title = "Scatter Plot", subtitle = "Correlation of wt Vs mpg", caption = "Made by Muhammad Yasir Qurashi") +
+  theme(
+    axis.title = element_text(size = 12, color = "black", face = "bold"),
+    axis.text = element_text(size = 10, color = "black", face = "bold"), 
+    axis.line = element_line(linewidth = 1, color = "black"),
+    plot.title = element_text(size = 20, color = "blue", face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 12,face = "bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_blank()
+  );p2
+```
+
+## Correlation Plot with 3 variables
+
+```{r, fig.height=4, fig.width=8}
+p3 <- ggplot(mt_data, mapping = aes(x = wt, y = mpg, colour = factor(cyl))) +
+  geom_point(size = 3, alpha = 1) +
+  geom_smooth(method = "lm", se = F, width = 2)+
+  stat_regline_equation(label.x = c(2,3,4))+
+  facet_wrap(~cyl)+
+  labs(color = "Cylinders", x = "Weight", y = "Fuel efficiency", title = "Scatter Plot", subtitle = "Correlation by No of Cylinders", caption = "Made by Muhammad Yasir Qurashi") + theme(
+    axis.title = element_text(size = 12, color = "black", face = "bold"),
+    axis.text = element_text(size = 10, color = "black", face = "bold"), 
+    axis.line = element_line(linewidth = 1, color = "black"),
+    plot.title = element_text(size = 20, color = "blue", face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 12,face = "bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_blank(),
+    strip.background = element_rect(color = "black", fill = "lightgrey", linewidth = 1),
+    strip.text = element_text(color = "black", face = "bold"),
+    panel.border = element_rect(color = "black", linewidth = 1),
+    legend.background = element_rect(fill = "lightgrey", color = "black")
+  ) +
+  scale_color_brewer(palette = "Dark2");p3
+```
+
+```{r, fig.height=7, fig.width=12}
+library(GGally)
+p4 <- ggpairs(
+  mtcars,
+  columns = c("mpg", "wt", "hp", "disp"),
+  aes(color = factor(cyl), alpha = 0.7),
+  lower = list(continuous = wrap("points", alpha = 0.6, size = 2)),
+  upper = list(continuous = wrap("cor", size = 5)),
+  diag = list(continuous = wrap("densityDiag"))
+) +
+  scale_fill_brewer(palette = "Dark2", direction = 1)+
+  labs(color = "Cylinders",caption = "Made by Muhammad Yasir Qurashi") + 
+  theme(
+    axis.title = element_text(size = 12, color = "black", face = "bold"),
+    axis.text = element_text(size = 10, color = "black", face = "bold"), 
+    axis.line = element_line(linewidth = 1, color = "black"),
+    plot.title = element_text(size = 20, color = "blue", face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 12,face = "bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_blank(),
+    strip.background = element_rect(color = "black", fill = "lightgrey", linewidth = 1),
+    strip.text = element_text(color = "black", face = "bold"),
+    panel.border = element_rect(color = "black", linewidth = 1));p4
+```
+
+## What Happens here
+
+ggpairs(), automatic creates
+
+| Panel          | Visualization                    |
+|----------------|----------------------------------|
+| Diagonal       | Distribution (histogram/density) |
+| Lower triangle | Scatterplots                     |
+| Upper triangle | Correlation coefficients         |
+
+
+## Interpretation
+
+“Vehicle weight was strongly negatively correlated with fuel efficiency (r = -0.87, p < 0.001). Linear regression analysis indicated that heavier vehicles exhibited significantly reduced miles per gallon. Engine displacement and horsepower were positively correlated (r = 0.79), suggesting structural coupling between engine size and power output.”
+
+# Compile figure
+
+
+```{r, fig.height=8, fig.width=12}
+library(patchwork)
+
+final_fig <- (p1 | p2) / (p3) +
+  plot_annotation(tag_levels = "A");final_fig
+
+```
+
+
+Best Regards,
+
+*Muhammad Yasir Qurashi*
+
+Research Data Analysis Tools Mentor
