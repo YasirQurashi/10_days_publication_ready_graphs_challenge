@@ -1,0 +1,171 @@
+---
+title: "Day_05_scientific_visualization_training"
+author: "By Muhammad Yasir Qurashi"
+date: "2026-03-08"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# **Principal Component analysis in R**
+
+Principal Component Analysis is a dimensionality reduction technique that transforms correlated variables into a smaller number of uncorrelated components that capture the major variation in the dataset
+
+## Scientific Questions
+
+* Which states have similar crime patterns?
+
+* Which crime types drive variation across states?
+
+* Can states be clustered into crime profiles?
+
+## Loading dataset
+
+```{r}
+UA <- USArrests
+UA
+summary(UA)
+head(UA)
+tail(UA)
+```
+
+## Loading Required packages
+
+```{r}
+library(factoextra)
+library(cluster)
+library(ggfortify)
+library(tidyverse)
+```
+
+# **Principal Component Analysis (PCA)**
+
+## Step:01 Data Standardization
+
+Why we do it
+
+Variables have different scales, if we do not standardize them variable with large scale dominates the other variable
+
+```{r}
+scale_UA <- scale(UA)
+
+# What does scale mean
+
+# mean = 0
+# standard deviation = 1
+# Now each variable contributes equally.
+
+```
+
+## Step 02 Run PCA
+
+Why we do it
+
+PCA identifies major patterns of variation
+
+```{r}
+pca_result <- prcomp(scale_UA)
+pca_result
+summary(pca_result)
+```
+
+## Step 03 Scree plot
+
+Why we use it
+
+The scree plot answers, how many principal components should we keep?
+
+It shows variance explained by each PC.
+
+```{r, fig.height=5, fig.width=6}
+
+
+p1 <- fviz_eig(pca_result, addlabels = T, ylim = c(0, 65), barfill = "lightblue", barcolor = "black") +
+  theme_classic() +
+  labs( title = "Scree plot", x = "Dimensions", y = "Percentage of explained variance", caption = "Made by Muhammad Yasir Qurashi") +
+  theme(
+    axis.title = element_text(size = 12, color = "black", face = "bold"),
+    plot.title = element_text(size = 16, color = "black", face = "bold", hjust = 0.5)
+  );p1
+
+# Iterpretation
+
+# Pca1 & pca2 shows 87% variation, since most information in dataset is captured by first two components
+```
+
+## Step 04 Variables correlation circle
+
+Why this is powerful
+
+This plot visualizes relationships among variables.
+
+It shows:
+
+-   variable correlations
+
+-   variable influence
+
+-   variable grouping
+
+```{r, fig.height=5, fig.width=6}
+p2 <- fviz_pca_var( pca_result, col.var = "cos2", gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), repel = TRUE ) +
+  theme_classic() +
+  labs( title = "PCA Of parameters", x = "PC1 (62%)", y = "PC2 (24.7)", caption = "Made by Muhammad Yasir Qurashi") +
+  theme(
+    axis.title = element_text(size = 12, color = "black", face = "bold"),
+    plot.title = element_text(size = 16, color = "black", face = "bold", hjust = 0.5)
+  );p2
+```
+
+*Interpretation rules*
+
+What the Circle Means
+
+* The circle represents maximum correlation (r = 1)
+
+| Pattern               | Meaning                     |
+| --------------------- | --------------------------- |
+| Arrows close together | strong positive correlation |
+| Opposite arrows       | negative correlation        |
+| 90° angle             | no correlation              |
+| Long arrow            | strong variable influence   |
+
+In above figure; Murder and assault variables clustered closely together in the correlation circle, indicating strong positive correlation between these crime indicators across states.
+
+## Step 05 Checking Contribution of each variable to PCA components
+
+```{r, fig.height=8}
+p4 <- fviz_contrib(pca_result, choice = "var", axes = 1, label = T); fviz_contrib(pca_result, choice = "var", axes = 2, label = T);  fviz_contrib(pca_result, choice = "var", axes = 3, label = T); fviz_contrib(pca_result, choice = "var", axes = 4, label = T);p4
+```
+
+## K_means Clustering of PCA scores
+
+```{r, fig.height=4, fig.width=5}
+
+k_cluster <- kmeans(scale_UA, centers = 4)
+k_cluster
+
+scores <- as.data.frame(pca_result$x)
+
+head(scores)
+
+scores$Cluster <- factor(k_cluster$cluster)
+
+p3 <- ggplot(scores, aes(PC1, PC2, color = Cluster, fill = Cluster)) +
+  stat_ellipse( geom = "polygon", alpha = 0.3, color = "black") +
+  geom_point( shape = 21, size = 3, color = "black" ) +
+  theme_classic() +
+   labs( title = "Clustering of PCA components", x = "PC1 (62%)", y = "PC2 (24.7)", caption = "Made by Muhammad Yasir Qurashi") +
+  theme(
+    axis.title = element_text(size = 12, color = "black", face = "bold"),
+    plot.title = element_text(size = 16, color = "black", face = "bold", hjust = 0.5)
+  );p3
+```
+
+Best Regards,
+
+*Muhammad Yasir Qurashi*
+
+Research Data Analysis Tools Mentor
