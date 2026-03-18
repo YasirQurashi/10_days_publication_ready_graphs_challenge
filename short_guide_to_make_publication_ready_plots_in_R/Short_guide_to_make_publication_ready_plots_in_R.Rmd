@@ -1,0 +1,371 @@
+---
+title: "Short_guide_to_make_publication_ready_plots"
+author: "By Muhammad Yasir Qurashi"
+date: "`r Sys.Date()`"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+> Objective
+
+Create *5 essential scientific plots* using a structured workflow:
+
+- Start from basic visualization
+
+- Upgrade to publication-ready figures
+
+- Add statistical annotations
+
+- Ensure reproducibility
+
+
+> Loading libraries
+
+Make sure to install these packages in your console and then load in your environment
+
+```{r}
+
+library(tidyverse)
+library(ggpubr)
+library(RColorBrewer)
+library(viridis)
+library(patchwork)
+library(palmerpenguins)
+```
+
+> Dataset loading & Cleaning
+
+```{r}
+# 1. Datasetloading
+
+data <- penguins # store dataset in data 
+
+# 2. Checking null values
+
+data %>% is.na() %>% colSums() # Computing null values in all columns
+
+# 3. Removing null values
+
+data <- data %>% drop_na()
+
+data %>% is.na() %>% colSums() # Checking if still null values are present
+
+# 4. Make new column of body mass
+
+data <- data %>% 
+  mutate(body_mass_kg = body_mass_g / 1000)
+colnames(data)
+```
+
+> 1. Histogram | Density plot (Distribution Check)
+
+Check data distribution & Skewness
+
+```{r, fig.dpi=600, fig.height=6, fig.width=10}
+
+# 1. For Bill length
+H1 <- ggplot(data, aes(x = bill_length_mm)) +
+  geom_density(color = "black", alpha = 1, linewidth = 2) +
+  geom_histogram(aes(y = after_stat(density)), fill = "deepskyblue", alpha = 0.3, binwidth = 1) +
+  theme_classic() +
+  labs(x = "Count", y = "Density", title = "Distribution of Bill Length") +
+  theme(
+    plot.title = element_text(hjust = 0.5))
+
+# 2. For Bill Depth
+
+H2 <- ggplot(data, aes(x = bill_depth_mm)) +
+  geom_density(color = "black", alpha = 1, linewidth = 2) +
+  geom_histogram(aes(y = after_stat(density)), fill = "deepskyblue", alpha = 0.3, binwidth = 1) +
+  theme_classic() +
+  labs(x = "Count", y = "Density", title = "Distribution of Bill Depth") +
+  theme(
+    plot.title = element_text(hjust = 0.5))
+
+# 3. For Flipper length
+
+H3 <- ggplot(data, aes(x = flipper_length_mm)) +
+  geom_density(color = "black", alpha = 1, linewidth = 2) +
+  geom_histogram(aes(y = after_stat(density)), fill = "deepskyblue", alpha = 0.3, binwidth = 1) +
+  theme_classic() +
+  labs(x = "Count", y = "Density", title = "Distribution of Flipper Length") +
+  theme(
+    plot.title = element_text(hjust = 0.5))
+
+# 4. For Body mass
+
+H4 <- ggplot(data, aes(x = body_mass_kg)) +
+  geom_density(color = "black", alpha = 1, linewidth = 2) +
+  geom_histogram(aes(y = after_stat(density)), fill = "deepskyblue", alpha = 0.3, binwidth = 0.5) +
+  theme_classic() +
+  labs(x = "Count", y = "Density", title = "Distribution of Body Mass (kg)",caption = "Made by Muhammad Yasir Qurashi") +
+  theme(
+    plot.title = element_text(hjust = 0.5)) 
+
+# Combine all plots
+
+final_Hist <- (H1 | H2) / (H3 | H4) +
+  plot_annotation(tag_levels = "A");final_Hist
+
+```
+
+> 2. Boxplot ( Outliers & Group Comparison)
+
+```{r, fig.dpi=600, fig.height=9, fig.width=12}
+# 1. For Bill length
+
+Box1 <- ggplot(data, aes(x = species, y = bill_length_mm, fill, fill = species )) +
+  geom_boxplot(outlier.colour = "red", linewidth = 0.8) +
+  stat_boxplot(geom = "errorbar", width = 0.2, linewidth = 0.8) +
+  stat_compare_means(method = "anova") +
+  theme_classic() +
+    labs(x = "Species", y = "Bill Length (mm) ", title = "Group Comparison by Bill Length") +
+  scale_fill_brewer(palette = "Dark2") +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "none")
+
+# 2. For Bill depth
+
+Box2 <- ggplot(data, aes(x = species, y = bill_depth_mm, fill, fill = species )) +
+  geom_boxplot(outlier.colour = "red", linewidth = 0.8) +
+  stat_boxplot(geom = "errorbar", width = 0.2, linewidth = 0.8) +
+  stat_compare_means(method = "anova") +
+  theme_classic() +
+    labs(x = "Species", y = "Bill Depth (mm)", title = "Group Comparison by Bill Depth") +
+  scale_fill_brewer(palette = "Paired") +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "none")
+
+# 3. For Flipper length
+
+Box3 <- ggplot(data, aes(x = species, y = flipper_length_mm, fill, fill = species )) +
+  geom_boxplot(outlier.colour = "red", linewidth = 0.8) +
+  stat_boxplot(geom = "errorbar", width = 0.2, linewidth = 0.8) +
+  stat_compare_means(method = "anova") +
+  theme_classic() +
+    labs(x = "Species", y = "Flipper Length (mm)", title = "Group Comparison by Flipper Length") +
+  scale_fill_brewer(palette = "Set2") +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "none")
+
+# 4. For Body mass (kg)
+
+Box4 <- ggplot(data, aes(x = species, y = body_mass_kg, fill, fill = species )) +
+  geom_boxplot(outlier.colour = "red", linewidth = 0.8) +
+  stat_boxplot(geom = "errorbar", width = 0.2, linewidth = 0.8) +
+  stat_compare_means(method = "anova") +
+  theme_classic() +
+    labs(x = "Species", y = "Body Mass (kg)", title = "Group Comparison by Body Mass", caption = "Made by Muhammad Yasir Qurashi") +
+  scale_fill_brewer(palette = "Set1") +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "none")
+
+# Combine all plots
+
+final_Box <- (Box1 | Box2) / (Box3 | Box4) +
+  plot_annotation(tag_levels = "A");final_Box
+
+
+```
+
+> 3. Violin Plot (Distribution shape)
+
+```{r, fig.dpi=600, fig.height=9, fig.width=12}
+
+# 1. For Bill length
+
+V1 <- ggplot(data, aes(x = species, y = bill_length_mm, fill = species)) +
+  geom_violin(trim = F) +
+  geom_boxplot(width = 0.1, color = "black") +
+  theme_classic() +
+  labs(x = "Species", y = "Bill Length (mm) ", title = "Distribution Shape by Bill Length") +
+  scale_fill_brewer(palette = "Dark2") +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "none")
+
+# 2. For Bill depth
+
+V2 <- ggplot(data, aes(x = species, y = bill_depth_mm, fill = species)) +
+  geom_violin(trim = F) +
+  geom_boxplot(width = 0.1, color = "black") +
+  theme_classic() +
+  labs(x = "Species", y = "Bill Depth (mm) ", title = "Distribution Shape by Bill Depth") +
+  scale_fill_brewer(palette = "Paired") +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "none")
+
+# 3. For Flipper length
+
+V3 <- ggplot(data, aes(x = species, y = flipper_length_mm, fill = species)) +
+  geom_violin(trim = F) +
+  geom_boxplot(width = 0.1, color = "black") +
+  theme_classic() +
+  labs(x = "Species", y = "Flipper length (mm) ", title = "Distribution Shape by Flipper length") +
+  scale_fill_brewer(palette = "Set2") +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "none")
+
+
+# 4. For Body mass
+
+V4 <- ggplot(data, aes(x = species, y = body_mass_kg, fill = species)) +
+  geom_violin(trim = F) +
+  geom_boxplot(width = 0.1, color = "black") +
+  theme_classic() +
+  labs(x = "Species", y = "Body Mass (kg) ", title = "Distribution Shape by Body Mass", , caption = "Made by Muhammad Yasir Qurashi") +
+  scale_fill_brewer(palette = "Set1") +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "none")
+
+# Combine all plots
+
+final_Violin <- (V1 | V2) / (V3 | V4) +
+  plot_annotation(tag_levels = "A");final_Violin
+
+
+```
+
+> 4. Barplot (Mean ± CI)
+
+```{r, fig.dpi=600, fig.height=9, fig.width=12}
+
+# 1. For Bill length
+
+Bar1 <- ggplot(data, aes(x = species, y = bill_length_mm, fill = species)) +
+  geom_bar(stat = "summary", fun = mean, geom = "bar", width = 0.5) +
+  geom_errorbar(stat = "summary", fun.data = mean_cl_normal, width = 0.1) +
+  stat_compare_means(method = "anova") +
+  theme_classic() +
+  labs(x = "Species", y = "Bill Length (mm) ", title = "Barplot by Bill Length") +
+  scale_fill_brewer(palette = "Dark2") +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "none")
+
+# 2. For Bill Depth
+
+Bar2 <- ggplot(data, aes(x = species, y = bill_depth_mm, fill = species)) +
+  geom_bar(stat = "summary", fun = mean, geom = "bar", width = 0.5) +
+  geom_errorbar(stat = "summary", fun.data = mean_cl_normal, width = 0.1) +
+  stat_compare_means(method = "anova") +
+  theme_classic() +
+  labs(x = "Species", y = "Bill Depth (mm) ", title = "Barplot by Bill Depth") +
+  scale_fill_brewer(palette = "Paired") +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "none")
+
+# 3. For Flipper length
+
+Bar3 <- ggplot(data, aes(x = species, y = flipper_length_mm, fill = species)) +
+  geom_bar(stat = "summary", fun = mean, geom = "bar", width = 0.5) +
+  geom_errorbar(stat = "summary", fun.data = mean_cl_normal, width = 0.1) +
+  stat_compare_means(method = "anova") +
+  theme_classic() +
+  labs(x = "Species", y = "Flipper Length (mm) ", title = "Barplot by Flipper Length") +
+  scale_fill_brewer(palette = "Set2") +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "none")
+
+# 4. For Body mass
+
+Bar4 <- ggplot(data, aes(x = species, y = body_mass_kg, fill = species)) +
+  geom_bar(stat = "summary", fun = mean, geom = "bar", width = 0.5) +
+  geom_errorbar(stat = "summary", fun.data = mean_cl_normal, width = 0.1) +
+  stat_compare_means(method = "anova") +
+  theme_classic() +
+  labs(x = "Species", y = "Body Mass (kg) ", title = "Barplot by Body Mass", caption = "Made by Muhammad Yasir Qurashi") +
+  scale_fill_brewer(palette = "Set1") +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "none")
+
+# Combine all plots
+
+final_bar <- (Bar1 | Bar2) / (Bar3 | Bar4) +
+  plot_annotation(tag_levels = "A");final_bar
+
+
+```
+
+
+> 5. Regression Plot
+
+```{r, fig.dpi=600, fig.height=9, fig.width=12}
+
+# 1. Body Mass Vs Bill Length
+
+R1 <- ggplot(data, aes(x = bill_length_mm, y = body_mass_kg)) +
+  geom_point(size = 2, color = "red") +
+  geom_smooth(method = "lm", se = TRUE) +
+  stat_cor(method = "pearson", label.x = 40, label.y = 6.15) + 
+  stat_regline_equation() +
+  theme_classic() +
+  labs(x = "Bill Length (mm)", y = "Body Mass (kg) ", title = "Regression & Correlation Analysis") +
+  theme(
+    plot.title = element_text(hjust = 0.5))
+
+# 2. Body Mass Vs Bill Depth
+
+R2 <- ggplot(data, aes(x = bill_depth_mm, y = body_mass_kg)) +
+  geom_point(size = 2, color = "grey") +
+  geom_smooth(method = "lm", se = TRUE) +
+  stat_cor(method = "pearson", label.x = 17.5, label.y = 6.15) + 
+  stat_regline_equation() +
+  theme_classic() +
+  labs(x = "Bill Depth (mm)", y = "Body Mass (kg) ", title = "Regression & Correlation Analysis") +
+  theme(
+    plot.title = element_text(hjust = 0.5)) +
+  xlim(c(13,23))
+
+# 3. Body Mass Vs Bill Length
+
+R3 <- ggplot(data, aes(x = flipper_length_mm, y = body_mass_kg)) +
+  geom_point(size = 2, color = "skyblue") +
+  geom_smooth(method = "lm", se = TRUE) +
+  stat_cor(method = "pearson", label.x = 185, label.y = 6.15) + 
+  stat_regline_equation() +
+  theme_classic() +
+  labs(x = "Flipper Length (mm)", y = "Body Mass (kg) ", title = "Regression & Correlation Analysis") +
+  theme(
+    plot.title = element_text(hjust = 0.5)) +
+  xlim(c(160,230))
+
+# 4. Bill Depth Vs Bill Length
+
+R4 <- ggplot(data, aes(x = bill_depth_mm, y = bill_length_mm)) +
+  geom_point(size = 2, color = "purple") +
+  geom_smooth(method = "lm", se = TRUE) +
+  stat_cor(method = "pearson", label.x = 15, label.y = 59) + 
+  stat_regline_equation() +
+  theme_classic() +
+  labs(x = "Bill Length (mm)", y = "Bill Depth (kg) ", title = "Regression & Correlation Analysis", caption = "Made by Muhammad Yasir Qurashi") +
+  theme(
+    plot.title = element_text(hjust = 0.5)) +
+  xlim(c(13,20)) + ylim(c(30,60))
+
+# Combine all plots
+
+final_reg <- (R1 | R2) / (R3 | R4) +
+  plot_annotation(tag_levels = "A");final_reg
+```
+
+Best Regards,
+
+*Muhammad Yasir Qurashi*
+
+Research Data Analysis Tools Mentor
+
